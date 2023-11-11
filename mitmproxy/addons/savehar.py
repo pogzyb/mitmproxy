@@ -177,11 +177,12 @@ class SaveHar:
         }
 
         if flow.response:
+            response_content = self.get_response_content(flow.response)
             response_body_size = (
                 len(flow.response.raw_content) if flow.response.raw_content else 0
             )
             response_body_decoded_size = (
-                len(flow.response.content) if flow.response.content else 0
+                len(response_content) if response_content else 0
             )
             response_body_compression = response_body_decoded_size - response_body_size
             response = {
@@ -199,7 +200,7 @@ class SaveHar:
                 "headersSize": len(str(flow.response.headers)),
                 "bodySize": response_body_size,
             }
-            if flow.response.content and strutils.is_mostly_bin(flow.response.content):
+            if response_content and strutils.is_mostly_bin(flow.response.content):
                 response["content"]["text"] = base64.b64encode(
                     flow.response.content
                 ).decode()
@@ -302,3 +303,10 @@ class SaveHar:
 
     def format_multidict(self, obj: _MultiDict[str, str]) -> list[dict]:
         return [{"name": k, "value": v} for k, v in obj.items(multi=True)]
+
+    def get_response_content(self, response: http.Response):
+        try:
+            return response.content
+        except ValueError:
+            # Incomplete response content can cause decoding errors.
+            return None
