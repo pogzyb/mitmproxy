@@ -304,7 +304,7 @@ class SaveHar:
     def format_multidict(self, obj: _MultiDict[str, str]) -> list[dict]:
         return [{"name": k, "value": v} for k, v in obj.items(multi=True)]
 
-    def get_response_content(self, response: http.Response):
+    def get_response_content(self, response: http.Response) -> bytes | None:
         try:
             return response.content
         except ValueError:
